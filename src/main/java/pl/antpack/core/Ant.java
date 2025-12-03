@@ -52,7 +52,6 @@ public class Ant {
             if (sum == 0)
                 break;
 
-            // roulette wheel selection
             double pick = r.nextDouble() * sum;
             double acc = 0;
             int chosen = -1;
