@@ -1,79 +1,98 @@
 package pl.antpack.ui;
 
 import javafx.fxml.FXML;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import pl.antpack.core.ACOEngine;
+import pl.antpack.model.Item;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 public class SimulationController {
 
     @FXML
     private Slider rhoSlider;
-    @FXML
-    private Label rhoLabel;
+    @FXML private Label rhoLabel;
+    @FXML private Slider alphaSlider;
+    @FXML private Label alphaLabel;
+    @FXML private Slider betaSlider;
+    @FXML private Label betaLabel;
 
-    @FXML
-    private Slider alphaSlider;
-    @FXML
-    private Label alphaLabel;
+    @FXML private LineChart<Number, Number> performanceChart;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
 
-    @FXML
-    private Slider betaSlider;
-    @FXML
-    private Label betaLabel;
-
-    private double rho;
-    private double alpha;
-    private double beta;
+    private ACOEngine acoEngine;
+    private XYChart.Series<Number, Number> avgSeries;
 
     @FXML
     public void initialize() {
-        updateRho(rhoSlider.getValue());
-        updateAlpha(alphaSlider.getValue());
-        updateBeta(betaSlider.getValue());
+        setupSliders();
 
-        // Parowanie
-        rhoSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updateRho(newValue.doubleValue());
+        avgSeries = new XYChart.Series<>();
+        avgSeries.setName("Średnia wartość populacji");
+        performanceChart.getData().add(avgSeries);
+        performanceChart.setAnimated(false);
+
+        List<Item> items = generateDummyItems(50);
+
+        acoEngine = new ACOEngine(items, 500);
+        updateEngineParams();
+
+        acoEngine.setOnIterationFinished((iteration, avgValue) -> {
+            avgSeries.getData().add(new XYChart.Data<>(iteration, avgValue));
+
+            if (avgSeries.getData().size() > 100) {
+                avgSeries.getData().remove(0);
+            }
         });
+    }
 
-        // Alfa
-        alphaSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updateAlpha(newValue.doubleValue());
+    @FXML
+    private void handleStart() {
+        updateEngineParams();
+        acoEngine.start();
+        startButton.setDisable(true);
+        stopButton.setDisable(false);
+    }
+
+    @FXML
+    private void handleStop() {
+        acoEngine.stop();
+        startButton.setDisable(false);
+        stopButton.setDisable(true);
+    }
+
+    private void updateEngineParams() {
+        if (acoEngine != null) {
+            acoEngine.updateParameters(
+                    alphaSlider.getValue(),
+                    betaSlider.getValue(),
+                    rhoSlider.getValue()
+            );
+        }
+    }
+
+    private void setupSliders() {
+
+
+        rhoSlider.valueProperty().addListener((obs, oldV, newV) -> {
+            rhoLabel.setText(String.format("%.2f", newV));
+            updateEngineParams();
         });
-
-        // Beta
-        betaSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-            updateBeta(newValue.doubleValue());
-        });
     }
 
-    private void updateRho(double value) {
-        this.rho = value;
-        rhoLabel.setText(String.format("%.2f", value));
-        System.out.println("Zmieniono parametr Parowania (ρ) na: " + rho);
-    }
-
-    private void updateAlpha(double value) {
-        this.alpha = value;
-        alphaLabel.setText(String.format("%.2f", value));
-        System.out.println("Zmieniono Wpływ Feromonów (α) na: " + alpha);
-    }
-
-    private void updateBeta(double value) {
-        this.beta = value;
-        betaLabel.setText(String.format("%.2f", value));
-        System.out.println("Zmieniono Wpływ Heurystyki (β) na: " + beta);
-    }
-
-    public double getRho() {
-        return rho;
-    }
-
-    public double getAlpha() {
-        return alpha;
-    }
-
-    public double getBeta() {
-        return beta;
+    private List<Item> generateDummyItems(int count) {
+        List<Item> list = new ArrayList<>();
+        Random r = new Random();
+        for (int i = 0; i < count; i++) {
+            list.add(new Item(i, r.nextInt(50) + 1, r.nextInt(100) + 1));
+        }
+        return list;
     }
 }

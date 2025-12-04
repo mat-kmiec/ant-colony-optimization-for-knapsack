@@ -13,9 +13,8 @@ public class App extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/sidebar.fxml")));
-
+        primaryStage.setScene(new Scene(root, 900, 600));
         primaryStage.setTitle("Ant Colony Optimization - Knapsack");
-        primaryStage.setScene(new Scene(root, 300, 500));
         primaryStage.show();
     }
 

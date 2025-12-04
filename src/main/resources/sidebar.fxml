@@ -1,47 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #f4f4f4;" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
-    <padding>
-        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-    </padding>
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
 
-    <Label text="Konfiguracja ACO">
-        <font>
-            <Font name="System Bold" size="18.0" />
-        </font>
-    </Label>
-    
-    <Separator prefWidth="200.0" />
+    <left>
+        <VBox alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #f4f4f4; -fx-border-color: #cccccc; -fx-border-width: 0 1 0 0;">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
 
-    <VBox spacing="5.0">
-        <Label text="Parowanie (ρ):" />
-        <Label fx:id="rhoLabel" text="0.50" textFill="#666666" />
-        <Slider fx:id="rhoSlider" blockIncrement="0.01" max="1.0" min="0.0" value="0.5" />
-    </VBox>
+            <Label text="Konfiguracja ACO">
+                <font>
+                    <Font name="System Bold" size="18.0" />
+                </font>
+            </Label>
 
-    <VBox spacing="5.0">
-        <Label text="Wpływ Feromonów (α):" />
-        <Label fx:id="alphaLabel" text="1.00" textFill="#666666" />
-        <Slider fx:id="alphaSlider" blockIncrement="0.1" max="5.0" min="0.0" value="1.0" />
-    </VBox>
+            <Separator prefWidth="200.0" />
 
-    <VBox spacing="5.0">
-        <Label text="Wpływ Heurystyki (β):" />
-        <Label fx:id="betaLabel" text="2.00" textFill="#666666" />
-        <Slider fx:id="betaSlider" blockIncrement="0.1" max="5.0" min="0.0" value="2.0" />
-    </VBox>
+            <VBox spacing="5.0">
+                <Label text="Parowanie (ρ):" />
+                <Label fx:id="rhoLabel" text="0.50" textFill="#666666" />
+                <Slider fx:id="rhoSlider" blockIncrement="0.01" max="1.0" min="0.0" value="0.5" />
+            </VBox>
 
-    <Separator prefWidth="200.0" />
+            <VBox spacing="5.0">
+                <Label text="Wpływ Feromonów (α):" />
+                <Label fx:id="alphaLabel" text="1.00" textFill="#666666" />
+                <Slider fx:id="alphaSlider" blockIncrement="0.1" max="5.0" min="0.0" value="1.0" />
+            </VBox>
 
-    <Button maxWidth="Infinity" mnemonicParsing="false" text="Wczytaj Plik" />
-    <Button maxWidth="Infinity" mnemonicParsing="false" style="-fx-background-color: #4CAF50; -fx-text-fill: white;" text="Start Symulacji" />
+            <VBox spacing="5.0">
+                <Label text="Wpływ Heurystyki (β):" />
+                <Label fx:id="betaLabel" text="2.00" textFill="#666666" />
+                <Slider fx:id="betaSlider" blockIncrement="0.1" max="5.0" min="0.0" value="2.0" />
+            </VBox>
 
-</VBox>
+            <Separator prefWidth="200.0" />
+
+            <Button maxWidth="Infinity" mnemonicParsing="false" text="Wczytaj Dane (Mock)" />
+
+            <HBox spacing="10.0">
+                <Button fx:id="startButton" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                        onAction="#handleStart"
+                        style="-fx-background-color: #4CAF50; -fx-text-fill: white;"
+                        text="Start" />
+
+                <Button fx:id="stopButton" maxWidth="Infinity" HBox.hgrow="ALWAYS"
+                        onAction="#handleStop" disable="true"
+                        style="-fx-background-color: #F44336; -fx-text-fill: white;"
+                        text="Stop" />
+            </HBox>
+
+        </VBox>
+    </left>
+
+    <center>
+        <VBox alignment="CENTER" spacing="20.0">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+
+            <Label text="Postęp Optymalizacji">
+                <font>
+                    <Font size="16.0" />
+                </font>
+            </Label>
+
+            <LineChart fx:id="performanceChart" title="Jakość Rozwiązania w czasie" VBox.vgrow="ALWAYS">
+                <xAxis>
+                    <NumberAxis label="Iteracja" side="BOTTOM" />
+                </xAxis>
+                <yAxis>
+                    <NumberAxis label="Wartość Plecaka" side="LEFT" />
+                </yAxis>
+            </LineChart>
+        </VBox>
+    </center>
+
+</BorderPane>
