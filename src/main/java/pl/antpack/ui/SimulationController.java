@@ -80,9 +80,18 @@ public class SimulationController {
 
     private void setupSliders() {
 
-
         rhoSlider.valueProperty().addListener((obs, oldV, newV) -> {
             rhoLabel.setText(String.format("%.2f", newV));
+            updateEngineParams();
+        });
+
+        alphaSlider.valueProperty().addListener((obs, oldV, newV) -> {
+            alphaLabel.setText(String.format("%.2f", newV));
+            updateEngineParams();
+        });
+
+        betaSlider.valueProperty().addListener((obs, oldV, newV) -> {
+            betaLabel.setText(String.format("%.2f", newV));
             updateEngineParams();
         });
     }

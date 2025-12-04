@@ -100,7 +100,7 @@ public class ACOEngine {
         for (Solution s : solutions) {
             double delta = (double) s.getValue() / 1000.0;
             for (Item item : s.getItems()) {
-                pheromones[items.indexOf(item)] += delta;
+                pheromones[item.getId()] += delta;
             }
         }
     }
