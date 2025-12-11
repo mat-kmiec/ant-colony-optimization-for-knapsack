@@ -7,7 +7,7 @@ import pl.antpack.model.Item;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class ACOEngine {
 
@@ -21,13 +21,15 @@ public class ACOEngine {
     private Solution globalBestSolution;
     private boolean isRunning = false;
     private Thread workerThread;
-    private BiConsumer<Integer, Double> onIterationFinished;
+    private Consumer<SimulationMetrics> onIterationFinished;
+
+    public record SimulationMetrics(int iteration, double avgValue, int bestInIterationVal, int globalBestVal) {}
 
     public ACOEngine(List<Item> items, int capacity) {
         this.items = items;
         this.capacity = capacity;
         this.pheromones = new double[items.size()];
-        Arrays.fill(pheromones, 1.0);
+        reset();
     }
 
     public void updateParameters(double alpha, double beta, double rho) {
@@ -36,8 +38,14 @@ public class ACOEngine {
         this.evaporationRate = rho;
     }
 
-    public void setOnIterationFinished(BiConsumer<Integer, Double> callback) {
+    public void setOnIterationFinished(Consumer<SimulationMetrics> callback) {
         this.onIterationFinished = callback;
+    }
+
+    public void reset() {
+        stop();
+        this.globalBestSolution = null;
+        Arrays.fill(pheromones, 1.0);
     }
 
     public void start() {
@@ -82,14 +90,22 @@ public class ACOEngine {
 
         if (globalBestSolution == null || iterationBest.getValue() > globalBestSolution.getValue()) {
             globalBestSolution = iterationBest;
-            System.out.println("Nowe najlepsze: " + globalBestSolution.getValue());
+            System.out.println("New Global Best: " + globalBestSolution.getValue());
         }
 
         updatePheromones(solutions);
 
         if (onIterationFinished != null) {
             double avgValue = solutions.stream().mapToInt(Solution::getValue).average().orElse(0);
-            Platform.runLater(() -> onIterationFinished.accept(iteration, avgValue));
+
+            SimulationMetrics metrics = new SimulationMetrics(
+                    iteration,
+                    avgValue,
+                    iterationBest.getValue(),
+                    globalBestSolution.getValue()
+            );
+
+            Platform.runLater(() -> onIterationFinished.accept(metrics));
         }
     }
 
