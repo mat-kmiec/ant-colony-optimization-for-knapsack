@@ -1,17 +1,15 @@
 package pl.antpack.ui;
 
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import pl.antpack.core.ACOEngine;
 import pl.antpack.model.Item;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class SimulationController {
 
@@ -32,6 +30,9 @@ public class SimulationController {
     private ACOEngine acoEngine;
     private XYChart.Series<Number, Number> avgSeries;
     private XYChart.Series<Number, Number> bestSeries;
+    @FXML
+    private TableView<Item> itemsTable;
+    private Set<Integer> highlightedItemIds = new HashSet<>();
 
     @FXML
     public void initialize() {
@@ -40,7 +41,19 @@ public class SimulationController {
 
 
         List<Item> items = generateDummyItems(50);
-
+        itemsTable.setItems(FXCollections.observableArrayList(items));itemsTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(Item item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setStyle("");
+                } else if (highlightedItemIds.contains(item.getId())) {
+                    setStyle("-fx-background-color: gold;");
+                } else {
+                    setStyle("");
+                }
+            }
+        });
         acoEngine = new ACOEngine(items, 500);
         updateEngineParams();
 
@@ -50,10 +63,26 @@ public class SimulationController {
 
 
     private void handleSimulationMetrics(ACOEngine.SimulationMetrics metrics) {
+        Platform.runLater(() -> {
+            updateChart(metrics);
+            updateLabels(metrics);
 
-        updateChart(metrics);
+            highlightedItemIds.clear();
+            highlightedItemIds.addAll(metrics.bestItemIds());  // podświetl wszystkie
+            itemsTable.refresh();
+        });
+    }
 
-        updateLabels(metrics);
+
+
+    private void highlightItem(int itemId) {
+        for (int i = 0; i < itemsTable.getItems().size(); i++) {
+            Item item = itemsTable.getItems().get(i);
+            if (item.getId() == itemId) {
+                itemsTable.getSelectionModel().select(i);
+                break;
+            }
+        }
     }
 
     private void setupChart() {

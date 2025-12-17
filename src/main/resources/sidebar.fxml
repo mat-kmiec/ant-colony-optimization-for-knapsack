@@ -11,7 +11,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.GridPane?> <BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
+<?import javafx.scene.layout.GridPane?> <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TableColumn?>
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
 
     <left>
         <VBox alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #f4f4f4; -fx-border-color: #cccccc; -fx-border-width: 0 1 0 0;">
@@ -78,8 +82,34 @@
                         style="-fx-background-color: #F44336; -fx-text-fill: white;"
                         text="Stop" />
             </HBox>
+            <Label text="Dostępne Przedmioty" style="-fx-font-weight: bold;" />
+
+            <ScrollPane fitToWidth="true" prefHeight="250.0">
+                <content>
+                    <TableView fx:id="itemsTable">
+                        <columns>
+                            <TableColumn text="ID" prefWidth="50">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="id"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn text="Waga" prefWidth="60">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="weight"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                            <TableColumn text="Wartość" prefWidth="60">
+                                <cellValueFactory>
+                                    <PropertyValueFactory property="value"/>
+                                </cellValueFactory>
+                            </TableColumn>
+                        </columns>
+                    </TableView>
+                </content>
+            </ScrollPane>
 
         </VBox>
+
     </left>
 
     <center>

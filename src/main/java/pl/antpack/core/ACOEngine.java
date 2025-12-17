@@ -23,7 +23,7 @@ public class ACOEngine {
     private Thread workerThread;
     private Consumer<SimulationMetrics> onIterationFinished;
 
-    public record SimulationMetrics(int iteration, double avgValue, int bestInIterationVal, int globalBestVal) {}
+    public record SimulationMetrics(int iteration, double avgValue, int bestInIterationVal, int globalBestVal, List<Integer> bestItemIds) {}
 
     public ACOEngine(List<Item> items, int capacity) {
         this.items = items;
@@ -95,19 +95,26 @@ public class ACOEngine {
 
         updatePheromones(solutions);
 
+        double avgValue = solutions.stream().mapToInt(Solution::getValue).average().orElse(0);
+
+        List<Integer> bestItemIds = iterationBest.getItems().stream()
+                .map(Item::getId)
+                .toList();
+
+        SimulationMetrics metrics = new SimulationMetrics(
+                iteration,
+                avgValue,
+                iterationBest.getValue(),
+                globalBestSolution.getValue(),
+                bestItemIds
+        );
+
         if (onIterationFinished != null) {
-            double avgValue = solutions.stream().mapToInt(Solution::getValue).average().orElse(0);
-
-            SimulationMetrics metrics = new SimulationMetrics(
-                    iteration,
-                    avgValue,
-                    iterationBest.getValue(),
-                    globalBestSolution.getValue()
-            );
-
             Platform.runLater(() -> onIterationFinished.accept(metrics));
         }
+
     }
+
 
     private void updatePheromones(List<Solution> solutions) {
         for (int i = 0; i < pheromones.length; i++) {
