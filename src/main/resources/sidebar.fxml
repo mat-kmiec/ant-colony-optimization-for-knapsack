@@ -11,8 +11,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-
-<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
+<?import javafx.scene.layout.GridPane?> <BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
 
     <left>
         <VBox alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #f4f4f4; -fx-border-color: #cccccc; -fx-border-width: 0 1 0 0;">
@@ -27,6 +26,20 @@
             </Label>
 
             <Separator prefWidth="200.0" />
+
+            <VBox spacing="5.0">
+                <Label text="Postęp" style="-fx-font-weight: bold;"/>
+                <GridPane hgap="10.0" vgap="5.0">
+                    <Label text="Najlepszy Wynik:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Label fx:id="globalBestLabel" text="0" textFill="#006400" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                    <Label text="Bieżąca Iteracja:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <Label fx:id="currentIterationLabel" text="0" textFill="#666666" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                </GridPane>
+            </VBox>
+            <Separator prefWidth="200.0" />
+
+            <Label text="Parametry Algorytmu" style="-fx-font-weight: bold;"/>
 
             <VBox spacing="5.0">
                 <Label text="Parowanie (ρ):" />
@@ -50,6 +63,10 @@
 
             <Button maxWidth="Infinity" mnemonicParsing="false" text="Wczytaj Dane (Mock)" />
 
+            <Button fx:id="resetButton" maxWidth="Infinity" mnemonicParsing="false"
+                    onAction="#handleReset"
+                    style="-fx-background-color: #FF9800; -fx-text-fill: white;"
+                    text="Resetuj Symulację" />
             <HBox spacing="10.0">
                 <Button fx:id="startButton" maxWidth="Infinity" HBox.hgrow="ALWAYS"
                         onAction="#handleStart"
