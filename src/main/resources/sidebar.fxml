@@ -3,136 +3,131 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.ScatterChart?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.GridPane?> <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
-<?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TableColumn?>
-<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/20" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
+
+<BorderPane prefHeight="768.0" prefWidth="1024.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.antpack.ui.SimulationController">
 
     <left>
-        <VBox alignment="TOP_CENTER" spacing="15.0" style="-fx-background-color: #f4f4f4; -fx-border-color: #cccccc; -fx-border-width: 0 1 0 0;">
-            <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-            </padding>
-
-            <Label text="Konfiguracja ACO">
+        <VBox spacing="15.0" style="-fx-background-color: #2b2b2b; -fx-padding: 15; -fx-border-color: #444; -fx-border-width: 0 1 0 0;">
+            <Label text="ANT OPTIMIZER" textFill="WHITE">
                 <font>
-                    <Font name="System Bold" size="18.0" />
+                    <Font name="System Bold" size="22.0" />
                 </font>
             </Label>
+            <Separator opacity="0.3" />
 
-            <Separator prefWidth="200.0" />
+            <Label style="-fx-font-weight: bold; -fx-text-fill: #bbb;" text="STATUS:" />
+            <GridPane hgap="10.0" vgap="5.0">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="120.0" minWidth="10.0" prefWidth="90.0" />
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="100.0" minWidth="10.0" prefWidth="80.0" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                    <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                </rowConstraints>
+
+                <Label style="-fx-text-fill: #888;" text="Iteracja:" GridPane.rowIndex="0" />
+                <Label fx:id="currentIterationLabel" style="-fx-text-fill: white; -fx-font-weight: bold;" text="0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                <Label style="-fx-text-fill: #888;" text="Best Score:" GridPane.rowIndex="1" />
+                <Label fx:id="globalBestLabel" style="-fx-text-fill: #00ff41; -fx-font-weight: bold;" text="0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+
+                <Label style="-fx-text-fill: #888;" text="Wypełnienie:" GridPane.rowIndex="2" />
+                <Label fx:id="knapsackFillLabel" style="-fx-text-fill: #ff9800;" text="0%" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+            </GridPane>
+
+            <Separator opacity="0.3" />
+
+            <Label style="-fx-font-weight: bold; -fx-text-fill: #bbb;" text="PARAMETRY:" />
 
             <VBox spacing="5.0">
-                <Label text="Postęp" style="-fx-font-weight: bold;"/>
-                <GridPane hgap="10.0" vgap="5.0">
-                    <Label text="Najlepszy Wynik:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                    <Label fx:id="globalBestLabel" text="0" textFill="#006400" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
-                    <Label text="Bieżąca Iteracja:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                    <Label fx:id="currentIterationLabel" text="0" textFill="#666666" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                </GridPane>
-            </VBox>
-            <Separator prefWidth="200.0" />
-
-            <Label text="Parametry Algorytmu" style="-fx-font-weight: bold;"/>
-
-            <VBox spacing="5.0">
-                <Label text="Parowanie (ρ):" />
-                <Label fx:id="rhoLabel" text="0.50" textFill="#666666" />
-                <Slider fx:id="rhoSlider" blockIncrement="0.01" max="1.0" min="0.0" value="0.5" />
+                <Label style="-fx-text-fill: #888;" text="Feromony (Alpha)" />
+                <Slider fx:id="alphaSlider" blockIncrement="0.1" max="5.0" value="1.0" />
+                <Label fx:id="alphaLabel" alignment="CENTER_RIGHT" maxWidth="Infinity" style="-fx-text-fill: white;" text="1.00" />
             </VBox>
 
             <VBox spacing="5.0">
-                <Label text="Wpływ Feromonów (α):" />
-                <Label fx:id="alphaLabel" text="1.00" textFill="#666666" />
-                <Slider fx:id="alphaSlider" blockIncrement="0.1" max="5.0" min="0.0" value="1.0" />
+                <Label style="-fx-text-fill: #888;" text="Heurystyka (Beta)" />
+                <Slider fx:id="betaSlider" blockIncrement="0.1" max="5.0" value="2.0" />
+                <Label fx:id="betaLabel" alignment="CENTER_RIGHT" maxWidth="Infinity" style="-fx-text-fill: white;" text="2.00" />
             </VBox>
 
             <VBox spacing="5.0">
-                <Label text="Wpływ Heurystyki (β):" />
-                <Label fx:id="betaLabel" text="2.00" textFill="#666666" />
-                <Slider fx:id="betaSlider" blockIncrement="0.1" max="5.0" min="0.0" value="2.0" />
+                <Label style="-fx-text-fill: #888;" text="Parowanie (Rho)" />
+                <Slider fx:id="rhoSlider" blockIncrement="0.01" max="1.0" value="0.5" />
+                <Label fx:id="rhoLabel" alignment="CENTER_RIGHT" maxWidth="Infinity" style="-fx-text-fill: white;" text="0.50" />
             </VBox>
 
-            <Separator prefWidth="200.0" />
+            <Separator opacity="0.3" />
 
-            <Button maxWidth="Infinity" mnemonicParsing="false" text="Wczytaj Dane (Mock)" />
-
-            <Button fx:id="resetButton" maxWidth="Infinity" mnemonicParsing="false"
-                    onAction="#handleReset"
-                    style="-fx-background-color: #FF9800; -fx-text-fill: white;"
-                    text="Resetuj Symulację" />
-            <HBox spacing="10.0">
-                <Button fx:id="startButton" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                        onAction="#handleStart"
-                        style="-fx-background-color: #4CAF50; -fx-text-fill: white;"
-                        text="Start" />
-
-                <Button fx:id="stopButton" maxWidth="Infinity" HBox.hgrow="ALWAYS"
-                        onAction="#handleStop" disable="true"
-                        style="-fx-background-color: #F44336; -fx-text-fill: white;"
-                        text="Stop" />
-            </HBox>
-            <Label text="Dostępne Przedmioty" style="-fx-font-weight: bold;" />
-
-            <ScrollPane fitToWidth="true" prefHeight="250.0">
-                <content>
-                    <TableView fx:id="itemsTable">
-                        <columns>
-                            <TableColumn text="ID" prefWidth="50">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="id"/>
-                                </cellValueFactory>
-                            </TableColumn>
-                            <TableColumn text="Waga" prefWidth="60">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="weight"/>
-                                </cellValueFactory>
-                            </TableColumn>
-                            <TableColumn text="Wartość" prefWidth="60">
-                                <cellValueFactory>
-                                    <PropertyValueFactory property="value"/>
-                                </cellValueFactory>
-                            </TableColumn>
-                        </columns>
-                    </TableView>
-                </content>
-            </ScrollPane>
-
+            <VBox spacing="10.0">
+                <Button fx:id="startButton" maxWidth="Infinity" onAction="#handleStart" styleClass="button" text="URUCHOM" />
+                <Button fx:id="stopButton" disable="true" maxWidth="Infinity" onAction="#handleStop" styleClass="button, danger" text="ZATRZYMAJ" />
+                <Button fx:id="resetButton" maxWidth="Infinity" onAction="#handleReset" style="-fx-background-color: #555;" text="RESETUJ DANE" />
+            </VBox>
         </VBox>
-
     </left>
 
     <center>
-        <VBox alignment="CENTER" spacing="20.0">
-            <padding>
-                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-            </padding>
+        <TabPane tabClosingPolicy="UNAVAILABLE">
+            <Tab text="Analityka Wizualna">
+                <SplitPane dividerPositions="0.5" orientation="VERTICAL" style="-fx-background-color: #1e1e1e;">
+                    <LineChart fx:id="performanceChart" animated="false" createSymbols="false" title="Zbieżność Algorytmu">
+                        <xAxis><NumberAxis label="Iteracja" /></xAxis>
+                        <yAxis><NumberAxis label="Wartość Plecaka" /></yAxis>
+                    </LineChart>
 
-            <Label text="Postęp Optymalizacji">
-                <font>
-                    <Font size="16.0" />
-                </font>
-            </Label>
+                    <ScatterChart fx:id="itemScatterChart" title="Przestrzeń Rozwiązań (Waga vs Wartość)">
+                        <xAxis><NumberAxis label="Waga (Koszt)" /></xAxis>
+                        <yAxis><NumberAxis label="Wartość (Zysk)" /></yAxis>
+                    </ScatterChart>
+                </SplitPane>
+            </Tab>
 
-            <LineChart fx:id="performanceChart" title="Jakość Rozwiązania w czasie" VBox.vgrow="ALWAYS">
-                <xAxis>
-                    <NumberAxis label="Iteracja" side="BOTTOM" />
-                </xAxis>
-                <yAxis>
-                    <NumberAxis label="Wartość Plecaka" side="LEFT" />
-                </yAxis>
-            </LineChart>
-        </VBox>
+            <Tab text="Szczegóły Przedmiotów">
+                <TableView fx:id="itemsTable" style="-fx-background-color: #252526;">
+                    <columns>
+                        <TableColumn prefWidth="50" text="ID">
+                            <cellValueFactory><PropertyValueFactory property="id" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn prefWidth="100" text="Waga">
+                            <cellValueFactory><PropertyValueFactory property="weight" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn prefWidth="100" text="Wartość">
+                            <cellValueFactory><PropertyValueFactory property="value" /></cellValueFactory>
+                        </TableColumn>
+                        <TableColumn fx:id="pheromoneCol" prefWidth="150" text="Poziom Feromonu" />
+                    </columns>
+                </TableView>
+            </Tab>
+        </TabPane>
     </center>
+
+    <bottom>
+        <VBox prefHeight="150.0" style="-fx-background-color: #111; -fx-border-color: #444; -fx-border-width: 1 0 0 0;">
+            <Label style="-fx-padding: 5; -fx-text-fill: #aaa; -fx-font-family: Consolas;" text="&gt; TERMINAL LOGÓW SYSTEMOWYCH" />
+            <ListView fx:id="logListView" style="-fx-background-color: #000;" VBox.vgrow="ALWAYS" />
+        </VBox>
+    </bottom>
 
 </BorderPane>

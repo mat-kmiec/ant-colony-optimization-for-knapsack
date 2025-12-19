@@ -22,10 +22,8 @@ public class Ant {
     }
 
     public Solution buildSolution(int capacity) {
-
         Knapsack knapsack = new Knapsack(capacity);
         selectedItems.clear();
-
         List<Integer> remaining = new ArrayList<>();
         for (int i = 0; i < availableItems.size(); i++) {
             remaining.add(i);
@@ -34,47 +32,61 @@ public class Ant {
         Random r = new Random();
 
         while (!remaining.isEmpty()) {
-
-            double sum = 0;
-            double[] probability = new double[remaining.size()];
-
-            for (int i = 0; i < remaining.size(); i++) {
-                int idx = remaining.get(i);
-                Item it = availableItems.get(idx);
-
-                double pher = Math.pow(pheromones[idx], alpha);
-                double heur = Math.pow((double) it.getValue() / it.getWeight(), beta);
-
-                probability[i] = pher * heur;
-                sum += probability[i];
-            }
-
-            if (sum == 0)
-                break;
-
-            double pick = r.nextDouble() * sum;
-            double acc = 0;
-            int chosen = -1;
-
-            for (int i = 0; i < probability.length; i++) {
-                acc += probability[i];
-                if (acc >= pick) {
-                    chosen = remaining.get(i);
-                    break;
+            List<Integer> candidates = new ArrayList<>();
+            for (Integer idx : remaining) {
+                if (knapsack.canAdd(availableItems.get(idx))) {
+                    candidates.add(idx);
                 }
             }
 
-            if (chosen == -1)
-                chosen = remaining.get(remaining.size() - 1);
-
-            Item item = availableItems.get(chosen);
-
-            if (knapsack.canAdd(item)) {
-                selectedItems.add(item);
-                knapsack.add(item);
+            if (candidates.isEmpty()) {
+                break;
             }
 
-            remaining.remove((Integer) chosen);
+            double sum = 0;
+            double[] probabilities = new double[candidates.size()];
+
+            for (int i = 0; i < candidates.size(); i++) {
+                int idx = candidates.get(i);
+                Item item = availableItems.get(idx);
+
+                double tau = pheromones[idx];
+                double eta = (double) item.getValue() / item.getWeight();
+
+                if (tau <= 0) tau = 0.0001;
+
+                double p = Math.pow(tau, alpha) * Math.pow(eta, beta);
+                probabilities[i] = p;
+                sum += p;
+            }
+
+            int selectedIdxInCandidates = -1;
+
+            if (sum == 0) {
+                selectedIdxInCandidates = r.nextInt(candidates.size());
+            } else {
+                double pick = r.nextDouble() * sum;
+                double current = 0;
+                for (int i = 0; i < probabilities.length; i++) {
+                    current += probabilities[i];
+                    if (current >= pick) {
+                        selectedIdxInCandidates = i;
+                        break;
+                    }
+                }
+            }
+
+            if (selectedIdxInCandidates == -1) {
+                selectedIdxInCandidates = candidates.size() - 1;
+            }
+
+            Integer actualItemIndex = candidates.get(selectedIdxInCandidates);
+            Item itemToAdd = availableItems.get(actualItemIndex);
+
+            knapsack.add(itemToAdd);
+            selectedItems.add(itemToAdd);
+
+            remaining.remove(actualItemIndex);
         }
 
         int value = selectedItems.stream().mapToInt(Item::getValue).sum();
