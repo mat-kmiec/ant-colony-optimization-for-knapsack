@@ -1,21 +1,52 @@
-# 🐜 Ant Colony Knapsack Solver
+# 🐜 AntPack Optimizer (ACO Knapsack Solver)
 
-![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Build](https://img.shields.io/badge/Build-Maven-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
+> Zaawansowana wizualizacja Algorytmu Mrówkowego (Ant Colony Optimization) rozwiązującego Problem Plecakowy (Knapsack Problem).
 
-Zaawansowana implementacja **Algorytmu Mrówkowego (ACO)** rozwiązująca dyskretny problem plecakowy (0/1 Knapsack Problem) z wizualizacją w czasie rzeczywistym.
-
----
+![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![JavaFX](https://img.shields.io/badge/JavaFX-UI-4285F4?style=for-the-badge&logo=java&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-Build-C71A36?style=for-the-badge&logo=apache-maven&logoColor=white)
 
 ## 📋 O Projekcie
 
-Projekt demonstruje zastosowanie metaheurystyki inspirowanej naturą do rozwiązywania problemów NP-trudnych. Aplikacja pozwala użytkownikowi na:
-1. **Dynamiczne sterowanie parametrami** algorytmu (współczynniki feromonów, parowanie) w trakcie działania symulacji.
-2. **Wizualizację procesu decyzyjnego** mrówek (heatmapa feromonowa).
-3. **Analizę wydajności** poprzez wykresy zbieżności i eksport danych statystycznych.
+**AntPack Optimizer** to aplikacja desktopowa napisana w Javie, która pozwala na żywo obserwować, jak roje wirtualnych mrówek rozwiązują problemy optymalizacyjne typu NP-trudnego. Aplikacja nie tylko znajduje rozwiązanie, ale przede wszystkim **wizualizuje proces decyzyjny** (ślady feromonowe, zbieżność populacji, eksplorację).
 
-Aplikacja została napisana w czystej Javie z wykorzystaniem **JavaFX** dla interfejsu użytkownika, kładąc nacisk na czystą architekturę i separację logiki od widoku.
+Projekt powstał w celu zbadania wpływu parametrów metaheurystycznych (Alpha, Beta, Rho) na efektywność algorytmów roju.
 
 ---
+
+## ✨ Główne Funkcjonalności
+
+* **📈 Wizualizacja w Czasie Rzeczywistym:**
+    * Wykres zbieżności (Convergence Graph): Porównanie średniej populacji z najlepszym znalezionym rozwiązaniem.
+    * Wykres rozrzutu (Scatter Plot): Wizualizacja przestrzeni rozwiązań (Waga vs Wartość).
+* **🧪 Laboratorium Feromonowe:**
+    * Dynamiczna tabela ("Heatmapa"), która podświetla na zielono przedmioty wybierane przez mrówki.
+    * Możliwość obserwacji procesu "parowania" i wzmacniania ścieżek.
+* **🎛️ Pełna Kontrola Parametrów:**
+    * **Alpha (α):** Wpływ feromonów (doświadczenie historyczne).
+    * **Beta (β):** Wpływ heurystyki (lokalna opłacalność przedmiotu).
+    * **Rho (ρ):** Współczynnik parowania śladów.
+* **📂 Obsługa Danych:**
+    * Wbudowany generator "Trudnych Problemów" (Strongly Correlated Instances).
+    * **Import własnych danych** z plików `.txt`.
+
+---
+
+## 📸 Zrzuty Ekranu
+
+| Główny Panel | Tabela Feromonów |
+|:---:|:---:|
+| <img src="screenshots/main_view.png" width="400" alt="Widok Główny"> | <img src="screenshots/table_view.png" width="400" alt="Tabela"> |
+
+---
+
+## 🚀 Instalacja i Uruchomienie
+
+### Wymagania
+* JDK 17 lub nowsze.
+* Maven.
+
+### Krok 1: Klonowanie
+```bash
+git clone [https://github.com/mat-kmiec/ant-colony-optimization-for-knapsack)
+cd antpack-optimizer
