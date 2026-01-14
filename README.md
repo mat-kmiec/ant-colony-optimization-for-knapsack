@@ -36,7 +36,7 @@ Projekt powstał w celu zbadania wpływu parametrów metaheurystycznych (Alpha, 
 
 | Główny Panel | Tabela Feromonów |
 |:---:|:---:|
-| <img src="screenshots/main_view.png" width="400" alt="Widok Główny"> | <img src="screenshots/table_view.png" width="400" alt="Tabela"> |
+| <img src="main_view.png" width="400" alt="Widok Główny"> | <img src="screenshots/table_view.png" width="400" alt="Tabela"> |
 
 ---
 
