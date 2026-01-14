@@ -8,238 +8,261 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import pl.antpack.core.ACOEngine;
+import pl.antpack.core.ACOEngine.SimulationMetrics;
 import pl.antpack.model.Item;
+import pl.antpack.utils.BenchmarkGenerator;
 
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimulationController {
 
-    @FXML private Slider rhoSlider, alphaSlider, betaSlider;
-    @FXML private Label rhoLabel, alphaLabel, betaLabel;
-    @FXML private Button startButton, stopButton, resetButton;
+    // --- GUI References ---
+    @FXML private Label currentIterationLabel;
+    @FXML private Label globalBestLabel;
+    @FXML private Label knapsackFillLabel;
 
-    @FXML private Label globalBestLabel, currentIterationLabel, knapsackFillLabel;
+    @FXML private Slider alphaSlider;
+    @FXML private Label alphaLabel;
+    @FXML private Slider betaSlider;
+    @FXML private Label betaLabel;
+    @FXML private Slider rhoSlider;
+    @FXML private Label rhoLabel;
+
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
+    @FXML private Button resetButton;
+    @FXML private Button loadFileButton;
 
     @FXML private LineChart<Number, Number> performanceChart;
     @FXML private ScatterChart<Number, Number> itemScatterChart;
+
     @FXML private TableView<Item> itemsTable;
     @FXML private TableColumn<Item, Double> pheromoneCol;
     @FXML private ListView<String> logListView;
 
-    private ACOEngine acoEngine;
+    private ACOEngine engine;
     private XYChart.Series<Number, Number> avgSeries;
     private XYChart.Series<Number, Number> bestSeries;
-    private XYChart.Series<Number, Number> scatterDataSeries;
-
-    private Set<Integer> highlightedItemIds = new HashSet<>();
-    private Map<Integer, Double> currentPheromones = new HashMap<>();
+    private double[] currentPheromones;
 
     @FXML
     public void initialize() {
         setupSliders();
         setupCharts();
-        setupLogView();
-        List<Item> items = generateHardItems(250);
+        setupTable();
 
-        itemsTable.setItems(FXCollections.observableArrayList(items));
-        setupTableColumns();
-
-        acoEngine = new ACOEngine(items, 5000);
-        acoEngine.setCallbacks(this::handleSimulationMetrics, this::addLog);
-
-        updateEngineParams();
-        addLog("INFO: Dashboard gotowy. Załadowano 250 przedmiotów.");
+        loadBenchmarkData();
     }
 
+    @FXML
+    private void handleLoadFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz plik z danymi plecaka");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Pliki tekstowe", "*.txt"));
 
-    private void handleSimulationMetrics(ACOEngine.SimulationMetrics metrics) {
-        updateChart(metrics);
+        File file = fileChooser.showOpenDialog(startButton.getScene().getWindow());
 
-        globalBestLabel.setText(String.valueOf(metrics.globalBestVal()));
-        currentIterationLabel.setText(String.valueOf(metrics.iteration()));
-
-        double fillPercent = (metrics.bestWeight() / 5000.0) * 100.0;
-        knapsackFillLabel.setText(String.format("%.1f%%", fillPercent));
-
-        for(int i=0; i<metrics.pheromonesSnapshot().length; i++) {
-            currentPheromones.put(i, metrics.pheromonesSnapshot()[i]);
-        }
-
-        highlightedItemIds.clear();
-        highlightedItemIds.addAll(metrics.bestItemIds());
-
-        if (metrics.iteration() % 5 == 0) {
-            itemsTable.refresh();
-            updateScatterVisuals();
-        }
-    }
-
-    private void updateScatterVisuals() {
-        if(scatterDataSeries == null) return;
-        for (XYChart.Data<Number, Number> data : scatterDataSeries.getData()) {
-            Integer itemId = (Integer) data.getExtraValue();
-            javafx.scene.Node node = data.getNode();
-            if (node != null) {
-                if (highlightedItemIds.contains(itemId)) {
-
-                    node.setStyle("-fx-background-color: #ff3333; -fx-background-radius: 5px; -fx-padding: 6px;");
-                    node.toFront();
-                } else {
-
-                    node.setStyle("-fx-background-color: #007acc; -fx-background-radius: 2px; -fx-padding: 3px; -fx-opacity: 0.6;");
-                }
+        if (file != null) {
+            try {
+                parseAndLoadFile(file);
+            } catch (Exception e) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Błąd formatu");
+                alert.setHeaderText("Nie udało się wczytać pliku");
+                alert.setContentText("Upewnij się, że format to:\nCAPACITY\nWAGA WARTOŚĆ\nWAGA WARTOŚĆ...");
+                alert.showAndWait();
             }
         }
     }
 
-    private void addLog(String message) {
-        String timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
-        logListView.getItems().add(0, "[" + timestamp + "] " + message);
-        if (logListView.getItems().size() > 100) logListView.getItems().remove(100);
+    private void parseAndLoadFile(File file) throws IOException {
+        List<String> lines = Files.readAllLines(file.toPath());
+        if (lines.isEmpty()) return;
+
+        int capacity = Integer.parseInt(lines.get(0).trim());
+        List<Item> newItems = new ArrayList<>();
+
+        int idCounter = 0;
+        for (int i = 1; i < lines.size(); i++) {
+            String line = lines.get(i).trim();
+            if (line.isEmpty()) continue;
+
+            String[] parts = line.split("\\s+");
+            if (parts.length >= 2) {
+                int weight = Integer.parseInt(parts[0]);
+                int value = Integer.parseInt(parts[1]);
+                newItems.add(new Item(idCounter++, weight, value));
+            }
+        }
+
+        if (engine != null) engine.stop();
+        loadEngineWithData(newItems, capacity);
+        log("Wczytano plik: " + file.getName() + " (Pojemność: " + capacity + ", Przedmioty: " + newItems.size() + ")");
     }
 
-    @FXML
-    private void handleStop() {
-        acoEngine.stop();
-        toggleButtons(false);
-        showSummaryReport();
+    private void loadBenchmarkData() {
+        log("Generowanie danych testowych (Hard Knapsack)...");
+        BenchmarkGenerator.ProblemInstance problem = BenchmarkGenerator.generateHardProblem(150, 30);
+        loadEngineWithData(problem.items(), problem.capacity());
     }
 
-    private void showSummaryReport() {
-        if (acoEngine.getGlobalBest() == null) return;
+    private void loadEngineWithData(List<Item> items, int capacity) {
+        if (engine != null) engine.stop();
+        engine = new ACOEngine(items, capacity);
+        engine.setCallbacks(this::onSimulationUpdate, this::log);
+        itemsTable.setItems(FXCollections.observableArrayList(items));
+        currentPheromones = new double[items.size()];
+        avgSeries.getData().clear();
+        bestSeries.getData().clear();
+        itemScatterChart.getData().clear();
 
-        long timeSec = acoEngine.getElapsedTime() / 1000;
-        int value = acoEngine.getGlobalBest().getValue();
-        int itemsCount = acoEngine.getGlobalBest().getItems().size();
+        currentIterationLabel.setText("0");
+        globalBestLabel.setText("0");
+        knapsackFillLabel.setText("0%");
 
-        int totalWeight = acoEngine.getGlobalBest().getItems().stream().mapToInt(Item::getWeight).sum();
-        double fill = (totalWeight / (double) acoEngine.getCapacity()) * 100.0;
+        startButton.setDisable(false);
+        stopButton.setDisable(true);
+        resetButton.setDisable(false);
 
-        String report = String.format("""
-            === RAPORT KOŃCOWY ===
-            Czas obliczeń: %d sek
-            Najlepsza wartość: %d pkt
-            Ilość przedmiotów w plecaku: %d
-            Waga całkowita: %d / %d
-            Wypełnienie plecaka: %.2f%%
-            """, timeSec, value, itemsCount, totalWeight, acoEngine.getCapacity(), fill);
+        XYChart.Series<Number, Number> itemSeries = new XYChart.Series<>();
+        itemSeries.setName("Przedmioty");
+        for (Item item : items) {
+            itemSeries.getData().add(new XYChart.Data<>(item.getWeight(), item.getValue()));
+        }
+        itemScatterChart.getData().add(itemSeries);
+        updateEngineParams();
+    }
+    // ----------------------------------------
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Symulacja Zakończona");
-        alert.setHeaderText("Wyniki Optymalizacji");
-        alert.setContentText(report);
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/style.css").toExternalForm());
-        alert.showAndWait();
+    private void setupSliders() {
+        updateLabel(alphaSlider, alphaLabel, "Alpha: %.2f");
+        updateLabel(betaSlider, betaLabel, "Beta: %.2f");
+        updateLabel(rhoSlider, rhoLabel, "Rho: %.2f");
     }
 
+    private void updateLabel(Slider slider, Label label, String format) {
+        label.setText(String.format(format, slider.getValue()));
+        slider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            label.setText(String.format(format, newVal.doubleValue()));
+            if (engine != null) updateEngineParams();
+        });
+    }
 
     private void setupCharts() {
-        performanceChart.getData().clear();
-        performanceChart.setAnimated(false);
+        avgSeries = new XYChart.Series<>();
+        avgSeries.setName("Średnia populacji");
+        bestSeries = new XYChart.Series<>();
+        bestSeries.setName("Global Best");
+        performanceChart.getData().addAll(avgSeries, bestSeries);
         performanceChart.setCreateSymbols(false);
-        avgSeries = new XYChart.Series<>(); avgSeries.setName("Średnia");
-        bestSeries = new XYChart.Series<>(); bestSeries.setName("Best Iteration");
-        performanceChart.getData().addAll(bestSeries, avgSeries);
-        itemScatterChart.setAnimated(false);
-        itemScatterChart.setLegendVisible(false);
-        scatterDataSeries = new XYChart.Series<>();
-        itemScatterChart.getData().add(scatterDataSeries);
-        itemScatterChart.getXAxis().setLabel("Waga (Koszt)");
-        itemScatterChart.getYAxis().setLabel("Wartość (Zysk)");
     }
 
-    private List<Item> generateHardItems(int count) {
-        List<Item> list = new ArrayList<>();
-        Random r = new Random();
-        if(scatterDataSeries != null) scatterDataSeries.getData().clear();
+    private void setupTable() {
+        pheromoneCol.setCellValueFactory(data -> {
+            if (currentPheromones != null && data.getValue().getId() < currentPheromones.length) {
+                return new SimpleObjectProperty<>(currentPheromones[data.getValue().getId()]);
+            }
+            return new SimpleObjectProperty<>(0.0);
+        });
 
-        for (int i = 0; i < count; i++) {
-            int weight = r.nextInt(100) + 5;
-            int value = (int) (weight * (0.8 + r.nextDouble() * 1.5)) + r.nextInt(20);
-
-            Item item = new Item(i, weight, value);
-            list.add(item);
-
-            XYChart.Data<Number, Number> data = new XYChart.Data<>(weight, value);
-            data.setExtraValue(i);
-            scatterDataSeries.getData().add(data);
-        }
-        return list;
-    }
-
-    private void setupTableColumns() {
-        pheromoneCol.setCellValueFactory(cell ->
-                new SimpleObjectProperty<>(currentPheromones.getOrDefault(cell.getValue().getId(), 0.0)));
-
-        pheromoneCol.setCellFactory(tc -> new TableCell<>() {
+        pheromoneCol.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(Double item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(null);
-                } else {
-                    setText(String.format("%.2f", item));
-                    double hue = Math.max(0, 120 - (item * 10));
-                    setTextFill(Color.hsb(hue, 0.9, 0.8));
-                }
-            }
-        });
-
-        itemsTable.setRowFactory(tv -> new TableRow<>() {
-            @Override
-            protected void updateItem(Item item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item != null && highlightedItemIds.contains(item.getId())) {
-                    setStyle("-fx-background-color: #388e3c; -fx-text-fill: white;");
-                } else {
                     setStyle("");
-                }
-            }
-        });
-    }
-
-    private void setupLogView() {
-
-        logListView.setCellFactory(lv -> new ListCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setGraphic(null);
                 } else {
-                    setText(item);
-                    if (item.contains("SUKCES")) setTextFill(Color.web("#00ff41"));
-                    else if (item.contains("ALARM")) setTextFill(Color.web("#ff3333"));
-                    else setTextFill(Color.web("#e0e0e0"));
+                    setText(String.format("%.4f", item));
+                    double intensity = Math.min(item / 5.0, 1.0);
+                    int green = (int) (intensity * 255);
+                    setStyle("-fx-text-fill: white; -fx-background-color: rgba(0, " + green + ", 0, 0.4);");
                 }
             }
         });
     }
 
+    @FXML
+    private void handleStart() {
+        if (engine == null) return;
+        updateEngineParams();
 
-    @FXML private void handleStart() { updateEngineParams(); acoEngine.start(); toggleButtons(true); addLog("SYSTEM: Start symulacji."); }
-    @FXML private void handleReset() {
-        acoEngine.reset();
-        avgSeries.getData().clear(); bestSeries.getData().clear();
-        if(globalBestLabel!=null) globalBestLabel.setText("0");
-        highlightedItemIds.clear(); currentPheromones.clear();
-        itemsTable.refresh(); updateScatterVisuals();
-        toggleButtons(false);
-        addLog("SYSTEM: Reset danych.");
+        if (engine.getGlobalBest() == null) {
+            avgSeries.getData().clear();
+            bestSeries.getData().clear();
+        }
+
+        startButton.setDisable(true);
+        stopButton.setDisable(false);
+        resetButton.setDisable(true);
+        loadFileButton.setDisable(true);
+
+        engine.start();
     }
-    private void toggleButtons(boolean running) { startButton.setDisable(running); stopButton.setDisable(!running); resetButton.setDisable(running); }
-    private void updateEngineParams() { if(acoEngine!=null) acoEngine.updateParameters(alphaSlider.getValue(), betaSlider.getValue(), rhoSlider.getValue()); }
-    private void setupSliders() {
-        rhoSlider.valueProperty().addListener((o, old, val) -> { rhoLabel.setText(String.format("%.2f", val)); updateEngineParams(); });
-        alphaSlider.valueProperty().addListener((o, old, val) -> { alphaLabel.setText(String.format("%.2f", val)); updateEngineParams(); });
-        betaSlider.valueProperty().addListener((o, old, val) -> { betaLabel.setText(String.format("%.2f", val)); updateEngineParams(); });
+
+    @FXML
+    private void handleStop() {
+        if (engine != null) engine.stop();
+        startButton.setDisable(false);
+        stopButton.setDisable(true);
+        resetButton.setDisable(false);
+        loadFileButton.setDisable(false);
     }
-    private void updateChart(ACOEngine.SimulationMetrics metrics) {
+
+    @FXML
+    private void handleReset() {
+        if (engine != null) engine.reset();
+        avgSeries.getData().clear();
+        bestSeries.getData().clear();
+        currentIterationLabel.setText("0");
+        globalBestLabel.setText("0");
+        knapsackFillLabel.setText("0%");
+        log("Zresetowano stan symulacji.");
+        itemsTable.refresh();
+    }
+
+    private void updateEngineParams() {
+        if (engine != null) {
+            engine.updateParameters(
+                    alphaSlider.getValue(),
+                    betaSlider.getValue(),
+                    rhoSlider.getValue()
+            );
+        }
+    }
+
+    private void onSimulationUpdate(SimulationMetrics metrics) {
+        currentIterationLabel.setText(String.valueOf(metrics.iteration()));
+        globalBestLabel.setText(String.valueOf(metrics.globalBestVal()));
+
+        double fillPercent = (metrics.bestWeight() / engine.getCapacity()) * 100.0;
+        knapsackFillLabel.setText(String.format("%.1f%% (%.0f/%d)", fillPercent, metrics.bestWeight(), engine.getCapacity()));
+
         avgSeries.getData().add(new XYChart.Data<>(metrics.iteration(), metrics.avgValue()));
-        bestSeries.getData().add(new XYChart.Data<>(metrics.iteration(), metrics.bestInIterationVal()));
-        if (avgSeries.getData().size() > 200) { avgSeries.getData().remove(0); bestSeries.getData().remove(0); }
+        bestSeries.getData().add(new XYChart.Data<>(metrics.iteration(), metrics.globalBestVal()));
+
+        if (avgSeries.getData().size() > 200) {
+            avgSeries.getData().remove(0);
+            bestSeries.getData().remove(0);
+        }
+
+        this.currentPheromones = metrics.pheromonesSnapshot();
+        if (metrics.iteration() % 5 == 0) {
+            itemsTable.refresh();
+        }
+    }
+
+    private void log(String message) {
+        logListView.getItems().add(0, "> " + message);
+        if (logListView.getItems().size() > 100) {
+            logListView.getItems().remove(100);
+        }
     }
 }

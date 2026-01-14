@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.ScatterChart?>
@@ -18,7 +17,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -84,6 +82,8 @@
                 <Button fx:id="startButton" maxWidth="Infinity" onAction="#handleStart" styleClass="button" text="URUCHOM" />
                 <Button fx:id="stopButton" disable="true" maxWidth="Infinity" onAction="#handleStop" styleClass="button, danger" text="ZATRZYMAJ" />
                 <Button fx:id="resetButton" maxWidth="Infinity" onAction="#handleReset" style="-fx-background-color: #555;" text="RESETUJ DANE" />
+                <Separator opacity="0.3" />
+                <Button fx:id="loadFileButton" maxWidth="Infinity" onAction="#handleLoadFile" style="-fx-background-color: #8e44ad;" text="WCZYTAJ Z PLIKU (.txt)" />
             </VBox>
         </VBox>
     </left>
