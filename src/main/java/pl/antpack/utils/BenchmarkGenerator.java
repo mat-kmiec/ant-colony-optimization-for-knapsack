@@ -7,6 +7,18 @@ import java.util.Random;
 
 public class BenchmarkGenerator {
 
+    /**
+     * Generates a "hard knapsack" problem instance based on the specified parameters.
+     * The method creates a list of items with randomized weights and values,
+     * calculates the total weight of the items, and derives the knapsack capacity
+     * using the specified capacity factor.
+     *
+     * @param itemCount the number of items to include in the problem instance
+     * @param capacityFactor the factor (as a percentage) used to determine the knapsack capacity
+     *                       relative to the total weight of all items
+     * @return a {@code ProblemInstance} containing the generated list of items and
+     *         the calculated knapsack capacity
+     */
     public static ProblemInstance generateHardProblem(int itemCount, int capacityFactor) {
         List<Item> items = new ArrayList<>();
         Random random = new Random(12345);

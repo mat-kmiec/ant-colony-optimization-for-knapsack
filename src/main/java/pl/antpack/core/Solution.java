@@ -3,6 +3,9 @@ package pl.antpack.core;
 import pl.antpack.model.Item;
 import java.util.List;
 
+/**
+ *
+ */
 public class Solution {
     private final List<Item> items;
     private final int value;

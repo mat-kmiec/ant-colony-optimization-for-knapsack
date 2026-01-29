@@ -5,6 +5,12 @@ import pl.antpack.model.Knapsack;
 
 import java.util.*;
 
+/**
+ * Represents an ant in the Ant Colony Optimization algorithm for solving the knapsack problem.
+ * The ant selects items to maximize the total value of the knapsack while staying within the
+ * knapsack's capacity. The selection process combines probabilistic influences of pheromone
+ * levels and heuristic information (e.g., value-to-weight ratio).
+ */
 public class Ant {
 
     private final List<Item> availableItems;
@@ -21,9 +27,22 @@ public class Ant {
         this.beta = beta;
     }
 
+    /**
+     * Builds a solution for the knapsack problem using a probabilistic approach influenced
+     * by pheromone levels and heuristic information.
+     *
+     * The method iteratively selects items to add to the knapsack based on a combination of
+     * pheromone levels and heuristic values (value-to-weight ratio of items). The selection
+     * process continues until the knapsack reaches its capacity or no more suitable candidates
+     * are available.
+     *
+     * @param capacity the capacity of the knapsack to be filled
+     * @return a {@code Solution} containing the selected items and the total value
+     */
     public Solution buildSolution(int capacity) {
         Knapsack knapsack = new Knapsack(capacity);
         selectedItems.clear();
+
         List<Integer> remaining = new ArrayList<>();
         for (int i = 0; i < availableItems.size(); i++) {
             remaining.add(i);

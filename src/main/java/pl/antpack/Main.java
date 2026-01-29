@@ -8,6 +8,11 @@ import javafx.stage.Stage;
 
 import java.util.Objects;
 
+/**
+ * The Main class serves as the entry point for the AntPack Optimizer application.
+ * It extends the JavaFX `Application` class and overrides the `start` method
+ * to set up and display the primary application window.
+ */
 public class Main extends Application {
 
     @Override

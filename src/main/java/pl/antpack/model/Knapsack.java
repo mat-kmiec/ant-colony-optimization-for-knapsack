@@ -1,5 +1,10 @@
 package pl.antpack.model;
 
+/**
+ * The Knapsack class represents a container with a fixed capacity that can hold items.
+ * It provides functionality to determine if an item can be added without exceeding
+ * the capacity and to keep track of the used weight of the knapsack.
+ */
 public class Knapsack {
     private final int capacity;
     private int usedWeight = 0;
